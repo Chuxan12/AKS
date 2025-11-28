@@ -28,7 +28,7 @@ curl http://localhost:8080/api/courses
 - REST API: http://localhost:8080/api/courses, http://localhost:8080/api/students
 - База: `postgres://academy:academy@localhost:5432/academy` (создаётся автоматически с данными из `db/init.sql`).
 
-Остановка: `docker compose down` (данные живут в контейнере; если нужен стабильный volume, добавьте его в `docker-compose.yml`).
+Остановка: `docker compose down` (данные живут в контейнере; если нужен стабильный volume, добавьте его в `docker-compose.yaml`).
 
 ## Примеры запросов
 ```bash
@@ -52,7 +52,7 @@ curl -X POST http://localhost:8080/api/students \
 - `src/main/webapp/index.html` — простая форма для ручной проверки.
 - `db/init.sql` — создание/наполнение таблиц.
 - `Dockerfile` — multi-stage (Maven → Payara Micro), добавляет драйвер PostgreSQL.
-- `docker-compose.yml` — сервисы `db` (Postgres) и `app` (Payara Micro).
+- `docker-compose.yaml` — сервисы `db` (Postgres) и `app` (Payara Micro).
 
 ## Соответствие пунктам задания
 1. Сервер приложений — Payara (альтернатива GlassFish) разворачивается в контейнере; при необходимости консоль администратора можно посмотреть, запустив отдельный контейнер `payara/server-full` с пробросом порта `4848`.
@@ -83,8 +83,8 @@ Spring Boot 3 + Spring MVC + Spring Data JPA на той же предметно
 
 ## Запуск (Compose для Spring)
 ```bash
-docker compose -f docker-compose.spring.yml build
-docker compose -f docker-compose.spring.yml up
+docker compose -f docker-compose.spring.yaml build
+docker compose -f docker-compose.spring.yaml up
 # проверка
 curl http://localhost:8080/api/courses
 ```
@@ -101,7 +101,7 @@ curl http://localhost:8080/api/courses
 ## Сборка/упаковка
 - Maven-проект: `spring-app/pom.xml`.
 - Мультистейдж Dockerfile: `spring-app/Dockerfile` (Maven → Temurin JRE).
-- Compose файл: `docker-compose.spring.yml`.
+- Compose файл: `docker-compose.spring.yaml`.
 
 ## Соответствие требованиям Spring-лабы
 1. Модель с двумя сущностями и SQL-скриптом — `Course`/`Student`, `db/init.sql`.
@@ -122,8 +122,8 @@ curl http://localhost:8080/api/courses
 
 ## Запуск (тот же Compose для Spring)
 ```bash
-docker compose -f docker-compose.spring.yml build
-docker compose -f docker-compose.spring.yml up
+docker compose -f docker-compose.spring.yaml build
+docker compose -f docker-compose.spring.yaml up
 ```
 
 Примеры запросов:
@@ -144,9 +144,9 @@ curl -H "Accept: application/xml"  http://localhost:8080/api/students
 3. Поддержка JSON/XML на вход/выход (Jackson XML).
 4. XSL хранится в статике `/xsl/api.xsl`.
 5. Processing-instruction с XSL добавляется в начало XML-ответов.
-6. Всё работает в Docker Compose (`docker-compose.spring.yml`).
+6. Всё работает в Docker Compose (`docker-compose.spring.yaml`).
 
-Остановка для ЛР2/ЛР3: `docker compose -f docker-compose.spring.yml down`.
+Остановка для ЛР2/ЛР3: `docker compose -f docker-compose.spring.yaml down`.
 
 # Лабораторная работа №4 — JMS журналирование и уведомления
 Добавлен брокер ActiveMQ Artemis и почтовый сервис Mailhog. Приложение публикует события об изменениях сущностей в JMS-очередь, слушатель пишет их в БД и отправляет письма по условию.
@@ -160,8 +160,8 @@ curl -H "Accept: application/xml"  http://localhost:8080/api/students
 
 ## Запуск (Compose тот же)
 ```bash
-docker compose -f docker-compose.spring.yml build
-docker compose -f docker-compose.spring.yml up
+docker compose -f docker-compose.spring.yaml build
+docker compose -f docker-compose.spring.yaml up
 ```
 
 Сервисы:
@@ -171,10 +171,6 @@ docker compose -f docker-compose.spring.yml up
 - Брокер JMS: tcp://localhost:61616
 
 Проверка:
-```bash
-# Создать студента с годом >=3, чтобы увидеть письмо в Mailhog
-curl -X POST http://localhost:8080/api/students \
-  -H "Content-Type: application/json" \
-  -d '{"fullName":"Charlie","email":"charlie@example.com","studyYear":3,"courseId":1}'
-```
-Записи аудита появятся в таблице `change_log`, письмо — в Mailhog (UI на 8025).
+- Веб-интерфейс: http://localhost:8080/ — формы создания/удаления курсов и студентов (они же генерируют JMS и письма).
+- REST остаётся: `/api/courses`, `/api/students` (можно тестировать через curl).
+- Журнал аудита — таблица `change_log`; письма видны в Mailhog (http://localhost:8025) для студентов со `studyYear >= 3`.

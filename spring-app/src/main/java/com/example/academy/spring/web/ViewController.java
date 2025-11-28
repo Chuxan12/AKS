@@ -2,6 +2,7 @@ package com.example.academy.spring.web;
 
 import com.example.academy.spring.model.Course;
 import com.example.academy.spring.model.Student;
+import com.example.academy.spring.repository.ChangeLogRepository;
 import com.example.academy.spring.service.CourseService;
 import com.example.academy.spring.service.StudentService;
 import jakarta.validation.Valid;
@@ -18,10 +19,12 @@ public class ViewController {
 
     private final CourseService courseService;
     private final StudentService studentService;
+    private final ChangeLogRepository changeLogRepository;
 
-    public ViewController(CourseService courseService, StudentService studentService) {
+    public ViewController(CourseService courseService, StudentService studentService, ChangeLogRepository changeLogRepository) {
         this.courseService = courseService;
         this.studentService = studentService;
+        this.changeLogRepository = changeLogRepository;
     }
 
     @GetMapping("/")
@@ -30,6 +33,7 @@ public class ViewController {
         model.addAttribute("students", studentService.findAll());
         model.addAttribute("courseForm", new Course());
         model.addAttribute("studentForm", new Student());
+        model.addAttribute("changeLogs", changeLogRepository.findTop50ByOrderByCreatedAtDesc());
         return "index";
     }
 
@@ -70,6 +74,7 @@ public class ViewController {
         model.addAttribute("courses", courseService.findAll());
         model.addAttribute("students", studentService.findAll());
         model.addAttribute("errors", bindingResult.getAllErrors());
+        model.addAttribute("changeLogs", changeLogRepository.findTop50ByOrderByCreatedAtDesc());
         return "index";
     }
 }

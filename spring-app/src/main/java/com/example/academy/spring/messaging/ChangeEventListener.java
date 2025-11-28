@@ -30,6 +30,7 @@ public class ChangeEventListener {
             log.warn("Получено пустое/некорректное событие JMS: {}", event);
             return;
         }
+        log.info("Получено событие изменения: {}", event);
         ChangeLog logRow = new ChangeLog();
         logRow.setCreatedAt(Instant.now());
         logRow.setEntityName(event.getEntity());
