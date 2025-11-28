@@ -1,5 +1,7 @@
 package com.example.academy.spring.model;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -16,10 +18,12 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 @Table(name = "students")
+@JacksonXmlRootElement(localName = "student")
 public class Student {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JacksonXmlProperty(isAttribute = true)
     private Long id;
 
     @NotBlank

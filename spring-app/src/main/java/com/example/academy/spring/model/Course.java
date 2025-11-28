@@ -1,5 +1,9 @@
 package com.example.academy.spring.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,14 +15,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "courses")
+@JacksonXmlRootElement(localName = "course")
 public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JacksonXmlProperty(isAttribute = true)
     private Long id;
 
     @NotBlank
@@ -37,6 +42,8 @@ public class Course {
 
     @OneToMany(mappedBy = "course")
     @JsonIgnore
+    @JacksonXmlElementWrapper(useWrapping = true, localName = "students")
+    @JacksonXmlProperty(localName = "student")
     private List<Student> students = new ArrayList<>();
 
     public Long getId() {

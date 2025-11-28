@@ -1,10 +1,12 @@
 package com.example.academy.spring.api.dto;
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+@JacksonXmlRootElement(localName = "student")
 public class StudentPayload {
 
     @NotBlank

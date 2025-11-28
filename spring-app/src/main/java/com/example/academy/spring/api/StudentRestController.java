@@ -6,6 +6,7 @@ import com.example.academy.spring.service.StudentService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.academy.spring.api.dto.StudentList;
 
 @RestController
-@RequestMapping("/api/students")
+@RequestMapping(value = "/api/students", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class StudentRestController {
 
     private final StudentService studentService;
@@ -27,8 +29,8 @@ public class StudentRestController {
     }
 
     @GetMapping
-    public List<Student> all() {
-        return studentService.findAll();
+    public StudentList all() {
+        return StudentList.of(studentService.findAll());
     }
 
     @GetMapping("/{id}")
@@ -36,13 +38,13 @@ public class StudentRestController {
         return studentService.get(id);
     }
 
-    @PostMapping
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Student> create(@RequestBody @Valid StudentPayload payload) {
         Student created = studentService.create(toEntity(payload), payload.getCourseId());
         return ResponseEntity.created(URI.create("/api/students/" + created.getId())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public Student update(@PathVariable Long id, @RequestBody @Valid StudentPayload payload) {
         return studentService.update(id, toEntity(payload), payload.getCourseId());
     }

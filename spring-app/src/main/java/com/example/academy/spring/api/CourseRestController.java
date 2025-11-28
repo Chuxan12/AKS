@@ -5,6 +5,7 @@ import com.example.academy.spring.service.CourseService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.academy.spring.api.dto.CourseList;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping(value = "/api/courses", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class CourseRestController {
 
     private final CourseService courseService;
@@ -26,8 +28,8 @@ public class CourseRestController {
     }
 
     @GetMapping
-    public List<Course> all() {
-        return courseService.findAll();
+    public CourseList all() {
+        return CourseList.of(courseService.findAll());
     }
 
     @GetMapping("/{id}")
@@ -35,13 +37,13 @@ public class CourseRestController {
         return courseService.get(id);
     }
 
-    @PostMapping
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Course> create(@RequestBody @Valid Course course) {
         Course created = courseService.create(course);
         return ResponseEntity.created(URI.create("/api/courses/" + created.getId())).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public Course update(@PathVariable Long id, @RequestBody @Valid Course course) {
         return courseService.update(id, course);
     }

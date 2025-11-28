@@ -109,3 +109,41 @@ curl http://localhost:8080/api/courses
 3. Бизнес-логика — сервисы `CourseService`, `StudentService`.
 4. Представление — Spring MVC (Thymeleaf) + REST.
 5. Всё запускается и работает через Docker Compose.
+
+---
+
+# Лабораторная работа №3 — RESTful веб-сервис
+Выбор стека: Spring REST (в составе Spring Boot 3). Аргументы: уже есть готовый Spring-проект из ЛР2, автоконфигурация REST/JSON/XML, интеграция с валидацией и Spring Data, меньше ручной настройки контейнера и зависимостей по сравнению с JAX-RS на Payara.
+
+## Возможности
+- REST API с JSON и XML (вход/выход) через контент-негацию.
+- В XML-ответы автоматически добавляется ссылка на XSL `/xsl/api.xsl`, чтобы браузер отображал данные как HTML.
+- Коллекции обёрнуты в `<courses>` / `<students>` для корректного XML.
+
+## Запуск (тот же Compose для Spring)
+```bash
+docker compose -f docker-compose.spring.yml build
+docker compose -f docker-compose.spring.yml up
+```
+
+Примеры запросов:
+```bash
+curl -H "Accept: application/json" http://localhost:8080/api/courses
+curl -H "Accept: application/xml"  http://localhost:8080/api/students
+```
+
+## Что добавлено для ЛР3
+- Контент-негация JSON/XML + собственный XML-конвертер с вставкой `<?xml-stylesheet ...?>` (`spring-app/src/main/java/com/example/academy/spring/config/XmlConfig.java`).
+- XML-аннотации на сущностях/DTO (`spring-app/src/main/java/com/example/academy/spring/model`, `spring-app/src/main/java/com/example/academy/spring/api/dto`).
+- XSL-преобразование `spring-app/src/main/resources/static/xsl/api.xsl` (списки курсов/студентов + навигация).
+- REST-контроллеры принимают/возвращают JSON или XML (`produces/consumes` в `api/*`).
+
+## Соответствие требованиям ЛР3
+1. Сравнение JAX-RS vs Spring REST — выбран Spring REST (см. аргументы выше).
+2. Использовано приложение из ЛР2 (Spring), расширено REST API.
+3. Поддержка JSON/XML на вход/выход (Jackson XML).
+4. XSL хранится в статике `/xsl/api.xsl`.
+5. Processing-instruction с XSL добавляется в начало XML-ответов.
+6. Всё работает в Docker Compose (`docker-compose.spring.yml`).
+
+Остановка для ЛР2/ЛР3: `docker compose -f docker-compose.spring.yml down`.
