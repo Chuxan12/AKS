@@ -8,7 +8,7 @@ spring:
     password: ${DB_PASSWORD:academy}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -16,6 +16,25 @@ spring:
   sql:
     init:
       mode: never
+  jms:
+    pub-sub-domain: false
+  activemq:
+    broker-url: ${JMS_BROKER_URL:tcp://mq:61616}
+    user: ${JMS_USER:admin}
+    password: ${JMS_PASSWORD:admin}
+    packages:
+      trust-all: true
+  mail:
+    host: ${MAIL_HOST:mailhog}
+    port: ${MAIL_PORT:1025}
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 logging:
   level:

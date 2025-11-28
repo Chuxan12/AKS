@@ -147,3 +147,34 @@ curl -H "Accept: application/xml"  http://localhost:8080/api/students
 6. Всё работает в Docker Compose (`docker-compose.spring.yml`).
 
 Остановка для ЛР2/ЛР3: `docker compose -f docker-compose.spring.yml down`.
+
+# Лабораторная работа №4 — JMS журналирование и уведомления
+Добавлен брокер ActiveMQ Artemis и почтовый сервис Mailhog. Приложение публикует события об изменениях сущностей в JMS-очередь, слушатель пишет их в БД и отправляет письма по условию.
+
+## Что сделано
+- Таблица `change_log` в БД для аудита (Hibernate создаёт автоматически; также есть в `db/init.sql`).
+- События `ChangeEvent` отправляются в очередь `academy.change.events` через `ChangeEventPublisher` при create/update/delete в сервисах `CourseService`/`StudentService`.
+- JMS Listener `ChangeEventListener` сохраняет запись в `change_log` и отправляет email (через Mailhog) если сущность `Student` и `studyYear >= 3` (пример условия).
+- Конфигурация JMS/Mail в `spring-app/src/main/resources/application.yaml`.
+- Активированы зависимости `spring-boot-starter-activemq` и `spring-boot-starter-mail`.
+
+## Запуск (Compose тот же)
+```bash
+docker compose -f docker-compose.spring.yml build
+docker compose -f docker-compose.spring.yml up
+```
+
+Сервисы:
+- API/веб: http://localhost:8080
+- ActiveMQ консоль: http://localhost:8161 (admin/admin)
+- Mailhog UI: http://localhost:8025 (письма по условию)
+- Брокер JMS: tcp://localhost:61616
+
+Проверка:
+```bash
+# Создать студента с годом >=3, чтобы увидеть письмо в Mailhog
+curl -X POST http://localhost:8080/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Charlie","email":"charlie@example.com","studyYear":3,"courseId":1}'
+```
+Записи аудита появятся в таблице `change_log`, письмо — в Mailhog (UI на 8025).

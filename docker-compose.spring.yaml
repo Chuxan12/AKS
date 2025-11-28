@@ -15,17 +15,38 @@ services:
     ports:
       - "5432:5432"
 
+  mq:
+    image: rmohr/activemq:latest
+    volumes:
+      - ./docker/activemq/activemq.xml:/opt/activemq/conf/activemq.xml:ro
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
   app:
     build:
       context: ./spring-app
     depends_on:
       db:
         condition: service_healthy
+      mq:
+        condition: service_started
     environment:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: academy
       DB_USER: academy
       DB_PASSWORD: academy
+      JMS_BROKER_URL: tcp://mq:61616
+      JMS_USER: artemis
+      JMS_PASSWORD: simetraehcapa
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
     ports:
       - "8080:8080"

@@ -15,6 +15,16 @@ CREATE TABLE IF NOT EXISTS students
     course_id  BIGINT REFERENCES courses (id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS change_log
+(
+    id          BIGSERIAL PRIMARY KEY,
+    created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
+    entity_name VARCHAR(120)            NOT NULL,
+    entity_id   BIGINT,
+    operation   VARCHAR(40)             NOT NULL,
+    details     TEXT
+);
+
 INSERT INTO courses (code, title, description)
 VALUES ('JAVA101', 'Введение в Java', 'Обзор языка и основ JVM'),
        ('WEB201', 'Веб‑приложения', 'HTTP, сервлеты, REST, безопасность')
