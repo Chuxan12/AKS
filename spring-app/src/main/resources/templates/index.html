@@ -36,7 +36,7 @@
             <input th:field="*{studyYear}" type="number" min="1" max="6" required>
             <label>Курс</label>
             <select th:field="*{course.id}">
-                <option th:value="" th:text="'Без курса'"></option>
+                <option th:value="${null}" th:text="'Без курса'"></option>
                 <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
             </select>
             <button type="submit">Добавить студента</button>
@@ -49,7 +49,7 @@
         <ul>
             <li th:each="c : ${courses}">
                 <strong th:text="${c.code}">CODE</strong> — <span th:text="${c.title}">Title</span>
-                <form th:action="@{'/courses/' + ${c.id} + '/delete'}" method="post" class="inline-form">
+                <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" class="inline-form">
                     <button type="submit">Удалить</button>
                 </form>
             </li>
@@ -64,7 +64,7 @@
                 <strong th:text="${s.fullName}">Name</strong>
                 (<span th:text="${s.email}">email</span>) — курс:
                 <span th:text="${s.course != null ? s.course.code : '—'}">Course</span>
-                <form th:action="@{'/students/' + ${s.id} + '/delete'}" method="post" class="inline-form">
+                <form th:action="@{/students/{id}/delete(id=${s.id})}" method="post" class="inline-form">
                     <button type="submit">Удалить</button>
                 </form>
             </li>
