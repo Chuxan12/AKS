@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Academy</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 32px; line-height: 1.6; background: #f6f8fb; }
+        h1 { margin-bottom: 0; }
+        section { background: #fff; padding: 16px 20px; margin-bottom: 18px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        label { display: block; margin: 6px 0 2px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #d0d7de; border-radius: 6px; }
+        button { margin-top: 8px; padding: 8px 12px; border: none; background: #0f62fe; color: #fff; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #1f7cf7; }
+        pre { background: #0d1117; color: #d9e0ee; padding: 12px; border-radius: 8px; overflow-x: auto; }
+        ul { padding-left: 20px; }
+    </style>
+</head>
+<body>
+<h1>Academy demo (Jakarta EE)</h1>
+<p>Простой пример предметной области: курсы и студенты. REST API разворачивается в контейнере.</p>
+
+<section>
+    <h2>API</h2>
+    <pre>
+GET  /api/courses
+POST /api/courses {"code":"JAVA101","title":"Intro to Java","description":"..."}
+GET  /api/students
+POST /api/students {"fullName":"Ada Lovelace","email":"ada@example.com","studyYear":1,"courseId":1}
+    </pre>
+</section>
+
+<section>
+    <h2>Создать курс</h2>
+    <form id="course-form">
+        <label>Код</label>
+        <input name="code" required>
+        <label>Название</label>
+        <input name="title" required>
+        <label>Описание</label>
+        <textarea name="description" rows="3"></textarea>
+        <button type="submit">Сохранить курс</button>
+    </form>
+</section>
+
+<section>
+    <h2>Создать студента</h2>
+    <form id="student-form">
+        <label>ФИО</label>
+        <input name="fullName" required>
+        <label>Email</label>
+        <input name="email" required>
+        <label>Курс (ID)</label>
+        <input name="courseId" type="number" placeholder="например, 1">
+        <label>Год обучения</label>
+        <input name="studyYear" type="number" value="1" min="1" max="6" required>
+        <button type="submit">Сохранить студента</button>
+    </form>
+</section>
+
+<section>
+    <h2>Текущее состояние</h2>
+    <div id="data"></div>
+</section>
+
+<script>
+    const dataDiv = document.getElementById('data');
+
+    async function loadData() {
+        const [courses, students] = await Promise.all([
+            fetch('/api/courses').then(r => r.json()),
+            fetch('/api/students').then(r => r.json())
+        ]);
+
+        dataDiv.innerHTML = `
+            <h3>Курсы</h3>
+            <ul>${courses.map(c => `<li>#${c.id} ${c.code} — ${c.title}</li>`).join('')}</ul>
+            <h3>Студенты</h3>
+            <ul>${students.map(s => `<li>#${s.id} ${s.fullName} (${s.email}) — курс: ${s.course ? s.course.code : 'нет'}</li>`).join('')}</ul>
+        `;
+    }
+
+    async function postJson(url, body) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    document.getElementById('course-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        await postJson('/api/courses', {
+            code: form.code.value,
+            title: form.title.value,
+            description: form.description.value
+        });
+        form.reset();
+        loadData();
+    });
+
+    document.getElementById('student-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        await postJson('/api/students', {
+            fullName: form.fullName.value,
+            email: form.email.value,
+            studyYear: Number(form.studyYear.value),
+            courseId: form.courseId.value ? Number(form.courseId.value) : null
+        });
+        form.reset();
+        loadData();
+    });
+
+    loadData().catch(err => dataDiv.innerHTML = `<p>Ошибка загрузки: ${err}</p>`);
+</script>
+</body>
+</html>

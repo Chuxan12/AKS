@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Academy Spring MVC</title>
+    <link rel="stylesheet" th:href="@{/style.css}" href="/style.css">
+</head>
+<body>
+<header>
+    <h1>Academy (Spring MVC + JPA)</h1>
+    <p>Курсы и студенты. Формы ниже пишут в PostgreSQL через Spring Data / Service слой.</p>
+</header>
+
+<main>
+    <section class="card">
+        <h2>Новый курс</h2>
+        <form th:action="@{/courses}" method="post" th:object="${courseForm}">
+            <label>Код</label>
+            <input th:field="*{code}" required>
+            <label>Название</label>
+            <input th:field="*{title}" required>
+            <label>Описание</label>
+            <textarea th:field="*{description}" rows="3"></textarea>
+            <button type="submit">Добавить курс</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Новый студент</h2>
+        <form th:action="@{/students}" method="post" th:object="${studentForm}">
+            <label>ФИО</label>
+            <input th:field="*{fullName}" required>
+            <label>Email</label>
+            <input th:field="*{email}" type="email" required>
+            <label>Год обучения</label>
+            <input th:field="*{studyYear}" type="number" min="1" max="6" required>
+            <label>Курс</label>
+            <select th:field="*{course.id}">
+                <option th:value="" th:text="'Без курса'"></option>
+                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
+            </select>
+            <button type="submit">Добавить студента</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Курсы</h2>
+        <div th:if="${courses.isEmpty()}">Пока пусто</div>
+        <ul>
+            <li th:each="c : ${courses}">
+                <strong th:text="${c.code}">CODE</strong> — <span th:text="${c.title}">Title</span>
+                <form th:action="@{'/courses/' + ${c.id} + '/delete'}" method="post" class="inline-form">
+                    <button type="submit">Удалить</button>
+                </form>
+            </li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <h2>Студенты</h2>
+        <div th:if="${students.isEmpty()}">Пока пусто</div>
+        <ul>
+            <li th:each="s : ${students}">
+                <strong th:text="${s.fullName}">Name</strong>
+                (<span th:text="${s.email}">email</span>) — курс:
+                <span th:text="${s.course != null ? s.course.code : '—'}">Course</span>
+                <form th:action="@{'/students/' + ${s.id} + '/delete'}" method="post" class="inline-form">
+                    <button type="submit">Удалить</button>
+                </form>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,80 @@
+body {
+    margin: 0;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #f9fbff, #eef3ff);
+    color: #0f172a;
+}
+
+header {
+    padding: 28px 32px;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 24px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+label {
+    display: block;
+    margin: 10px 0 4px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+input, textarea, select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #d0d7e2;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+button {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 12px 0 0;
+}
+
+li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.inline-form {
+    margin: 0;
+}

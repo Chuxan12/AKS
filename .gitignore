@@ -1,0 +1,6 @@
+target/
+spring-app/target/
+.idea/
+.vscode/
+*.log
+.DS_Store
