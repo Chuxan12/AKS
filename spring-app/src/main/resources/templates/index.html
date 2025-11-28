@@ -36,7 +36,7 @@
             <input th:field="*{studyYear}" type="number" min="1" max="6" required>
             <label>Курс</label>
             <select th:field="*{course.id}">
-                <option th:value="" th:text="'Без курса'"></option>
+                <option th:value="${null}" th:text="'Без курса'"></option>
                 <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
             </select>
             <button type="submit">Добавить студента</button>
