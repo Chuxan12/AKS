@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-family: "Inter", system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #f9fbff, #eef3ff);
+    background: #f4f7fb;
     color: #0f172a;
 }
 
@@ -16,11 +16,17 @@ h1 {
     font-size: 24px;
 }
 
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px 32px;
+    box-sizing: border-box;
+}
+
 main {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
-    padding: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 18px;
 }
 
 .card {
@@ -67,14 +73,77 @@ ul {
     margin: 12px 0 0;
 }
 
-li {
+.list-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: #fdfefe;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 8px;
 }
 
-.inline-form {
-    margin: 0;
+.actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ghost {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.ghost:hover {
+    background: #d7deeb;
+}
+
+.chips {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eef2ff;
+    color: #312e81;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    width: min(520px, 95vw);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.close {
+    background: transparent;
+    color: #0f172a;
+    font-weight: 700;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px 48px;  /* чуть больше отступ слева/справа */
+    box-sizing: border-box;
 }

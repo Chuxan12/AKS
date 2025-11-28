@@ -11,7 +11,7 @@
     <p>Курсы и студенты. Формы ниже пишут в PostgreSQL через Spring Data / Service слой.</p>
 </header>
 
-<main>
+<main class="container">
     <section class="card">
         <h2>Новый курс</h2>
         <form th:action="@{/courses}" method="post" th:object="${courseForm}">
@@ -47,11 +47,17 @@
         <h2>Курсы</h2>
         <div th:if="${courses.isEmpty()}">Пока пусто</div>
         <ul>
-            <li th:each="c : ${courses}">
-                <strong th:text="${c.code}">CODE</strong> — <span th:text="${c.title}">Title</span>
-                <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" class="inline-form">
-                    <button type="submit">Удалить</button>
-                </form>
+            <li th:each="c : ${courses}" class="list-item">
+                <div>
+                    <strong th:text="${c.code}">CODE</strong> — <span th:text="${c.title}">Title</span>
+                    <div th:if="${c.description}" style="font-size:13px; color:#475569;" th:text="${c.description}"></div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="ghost" th:attr="data-id=${c.id},data-code=${c.code},data-title=${c.title},data-description=${c.description}" onclick="openCourseModal(this)">Редактировать</button>
+                    <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" class="inline-form">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </div>
             </li>
         </ul>
     </section>
@@ -60,16 +66,100 @@
         <h2>Студенты</h2>
         <div th:if="${students.isEmpty()}">Пока пусто</div>
         <ul>
-            <li th:each="s : ${students}">
-                <strong th:text="${s.fullName}">Name</strong>
-                (<span th:text="${s.email}">email</span>) — курс:
-                <span th:text="${s.course != null ? s.course.code : '—'}">Course</span>
-                <form th:action="@{/students/{id}/delete(id=${s.id})}" method="post" class="inline-form">
-                    <button type="submit">Удалить</button>
-                </form>
+            <li th:each="s : ${students}" class="list-item">
+                <div>
+                    <strong th:text="${s.fullName}">Name</strong>
+                    (<span th:text="${s.email}">email</span>) — курс:
+                    <span th:text="${s.course != null ? s.course.code : '—'}">Course</span>
+                    <span class="chips" th:text="${'Год: ' + s.studyYear}"></span>
+                </div>
+                <div class="actions">
+                    <button type="button" class="ghost"
+                            th:attr="data-id=${s.id},data-fullname=${s.fullName},data-email=${s.email},data-year=${s.studyYear},data-course=${s.course != null ? s.course.id : ''}"
+                            onclick="openStudentModal(this)">Редактировать</button>
+                    <form th:action="@{/students/{id}/delete(id=${s.id})}" method="post" class="inline-form">
+                        <button type="submit">Удалить</button>
+                    </form>
+                </div>
             </li>
         </ul>
     </section>
 </main>
+
+<div class="modal-backdrop" id="courseModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Редактировать курс</h3>
+            <button class="close" type="button" onclick="closeModal('courseModal')">✕</button>
+        </div>
+        <form method="post" id="courseForm">
+            <label>Код</label>
+            <input name="code" id="courseCode" required>
+            <label>Название</label>
+            <input name="title" id="courseTitle" required>
+            <label>Описание</label>
+            <input name="description" id="courseDescription">
+            <div class="actions" style="justify-content:flex-end; margin-top:12px;">
+                <button type="button" class="ghost" onclick="closeModal('courseModal')">Отмена</button>
+                <button type="submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="studentModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Редактировать студента</h3>
+            <button class="close" type="button" onclick="closeModal('studentModal')">✕</button>
+        </div>
+        <form method="post" id="studentForm">
+            <label>ФИО</label>
+            <input name="fullName" id="studentName" required>
+            <label>Email</label>
+            <input name="email" id="studentEmail" type="email" required>
+            <label>Год обучения</label>
+            <input name="studyYear" id="studentYear" type="number" min="1" max="6" required>
+            <label>Курс</label>
+            <select name="courseId" id="studentCourse">
+                <option th:value="${null}" th:text="'Без курса'"></option>
+                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
+            </select>
+            <div class="actions" style="justify-content:flex-end; margin-top:12px;">
+                <button type="button" class="ghost" onclick="closeModal('studentModal')">Отмена</button>
+                <button type="submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCourseModal(btn) {
+        const id = btn.getAttribute('data-id');
+        document.getElementById('courseForm').action = `/courses/${id}/update`;
+        document.getElementById('courseCode').value = btn.getAttribute('data-code');
+        document.getElementById('courseTitle').value = btn.getAttribute('data-title');
+        document.getElementById('courseDescription').value = btn.getAttribute('data-description') || '';
+        document.getElementById('courseModal').style.display = 'flex';
+    }
+    function openStudentModal(btn) {
+        const id = btn.getAttribute('data-id');
+        document.getElementById('studentForm').action = `/students/${id}/update`;
+        document.getElementById('studentName').value = btn.getAttribute('data-fullname');
+        document.getElementById('studentEmail').value = btn.getAttribute('data-email');
+        document.getElementById('studentYear').value = btn.getAttribute('data-year');
+        document.getElementById('studentCourse').value = btn.getAttribute('data-course') || '';
+        document.getElementById('studentModal').style.display = 'flex';
+    }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    document.getElementById('courseModal').addEventListener('click', (e) => {
+        if (e.target.id === 'courseModal') closeModal('courseModal');
+    });
+    document.getElementById('studentModal').addEventListener('click', (e) => {
+        if (e.target.id === 'studentModal') closeModal('studentModal');
+    });
+</script>
 </body>
 </html>
