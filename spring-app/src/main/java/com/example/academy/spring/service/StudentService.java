@@ -58,8 +58,10 @@ public class StudentService {
 
     @Transactional
     public void delete(Long id) {
-        studentRepository.deleteById(id);
-        publisher.publish("Student", id, "DELETE", Map.of());
+        Student existing = get(id);
+        studentRepository.delete(existing);
+        publisher.publish("Student", id, "DELETE",
+                Map.of("fullName", existing.getFullName(), "email", existing.getEmail(), "studyYear", existing.getStudyYear()));
     }
 
     private Course resolveCourse(Long courseId) {

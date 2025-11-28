@@ -6,93 +6,207 @@
     <link rel="stylesheet" th:href="@{/style.css}" href="/style.css">
 </head>
 <body>
-<header>
-    <h1>Academy (Spring MVC + JPA)</h1>
-    <p>Курсы и студенты. Формы ниже пишут в PostgreSQL через Spring Data / Service слой.</p>
-</header>
+<div class="container">
+    <header>
+        <h1>Academy (Spring MVC + JPA)</h1>
+        <p>Создание, редактирование и удаление курсов и студентов через сервисный слой.</p>
+    </header>
 
-<main>
-    <section class="card">
-        <h2>Новый курс</h2>
-        <form th:action="@{/courses}" method="post" th:object="${courseForm}">
+    <main>
+        <div class="grid">
+            <section class="card">
+                <h2>Новый курс</h2>
+                <form th:action="@{/courses}" method="post" th:object="${courseForm}">
+                    <label>Код</label>
+                    <input th:field="*{code}" required>
+                    <label>Название</label>
+                    <input th:field="*{title}" required>
+                    <label>Описание</label>
+                    <textarea th:field="*{description}" rows="3"></textarea>
+                    <button type="submit">Добавить курс</button>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Новый студент</h2>
+                <form th:action="@{/students}" method="post" th:object="${studentForm}">
+                    <label>ФИО</label>
+                    <input th:field="*{fullName}" required>
+                    <label>Email</label>
+                    <input th:field="*{email}" type="email" required>
+                    <label>Год обучения</label>
+                    <input th:field="*{studyYear}" type="number" min="1" max="6" required>
+                    <label>Курс</label>
+                    <select th:field="*{course.id}">
+                        <option th:value="${null}" th:text="'Без курса'"></option>
+                        <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
+                    </select>
+                    <button type="submit">Добавить студента</button>
+                </form>
+            </section>
+
+            <section class="card">
+                <h2>Курсы</h2>
+                <div th:if="${courses.isEmpty()}">Пока пусто</div>
+                <ul>
+                    <li class="list-item" th:each="c : ${courses}">
+                        <div class="item-main">
+                            <div class="item-title" th:text="${c.code} + ' — ' + ${c.title}">JAVA101 — Основы Java</div>
+                            <div class="item-sub" th:text="${c.description != null && !c.description.isEmpty() ? c.description : 'Без описания'}">Описание</div>
+                        </div>
+                        <div class="actions">
+                            <button type="button" class="ghost"
+                                    th:attr="data-id=${c.id},data-code=${c.code},data-title=${c.title},data-description=${c.description}"
+                                    onclick="openCourseModal(this)">Редактировать</button>
+                            <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" style="margin:0;">
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h2>Студенты</h2>
+                <div th:if="${students.isEmpty()}">Пока пусто</div>
+                <ul>
+                    <li class="list-item" th:each="s : ${students}">
+                        <div class="item-main">
+                            <div class="item-title" th:text="${s.fullName}">Имя Фамилия</div>
+                            <div class="item-sub">
+                                <span th:text="${s.email}">email</span> ·
+                                <span th:text="'Год: ' + ${s.studyYear}">Год</span> ·
+                                <span th:text="${s.course != null ? s.course.code : 'Без курса'}">Курс</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button type="button" class="ghost"
+                                    th:attr="data-id=${s.id},data-full-name=${s.fullName},data-email=${s.email},data-study-year=${s.studyYear},data-course-id=${s.course != null ? s.course.id : ''}"
+                                    onclick="openStudentModal(this)">Редактировать</button>
+                            <form th:action="@{/students/{id}/delete(id=${s.id})}" method="post" style="margin:0;">
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="card full-span">
+                <h2>Последние события</h2>
+                <div th:if="${changeLogs == null or changeLogs.isEmpty()}">Нет записей</div>
+                <table th:if="${changeLogs != null and !changeLogs.isEmpty()}">
+                    <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Сущность</th>
+                        <th>Операция</th>
+                        <th>Детали</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${changeLogs}">
+                        <td th:text="${log.createdAt}">2025-01-01</td>
+                        <td th:text="${log.entityName + ' #' + log.entityId}">Entity</td>
+                        <td th:text="${log.operation}">OP</td>
+                        <td th:text="${log.details}">details</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Модалка редактирования курса -->
+<div class="modal-backdrop" id="course-modal" onclick="closeOnBackdrop(event, 'course-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Редактировать курс</h3>
+            <button class="close-btn" type="button" onclick="closeCourseModal()">×</button>
+        </div>
+        <form id="course-edit-form" method="post">
             <label>Код</label>
-            <input th:field="*{code}" required>
+            <input id="course-code" name="code" required>
             <label>Название</label>
-            <input th:field="*{title}" required>
+            <input id="course-title" name="title" required>
             <label>Описание</label>
-            <textarea th:field="*{description}" rows="3"></textarea>
-            <button type="submit">Добавить курс</button>
+            <textarea id="course-description" name="description" rows="3"></textarea>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="ghost" type="button" onclick="closeCourseModal()">Отмена</button>
+                <button type="submit">Сохранить</button>
+            </div>
         </form>
-    </section>
+    </div>
+</div>
 
-    <section class="card">
-        <h2>Новый студент</h2>
-        <form th:action="@{/students}" method="post" th:object="${studentForm}">
+<!-- Модалка редактирования студента -->
+<div class="modal-backdrop" id="student-modal" onclick="closeOnBackdrop(event, 'student-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Редактировать студента</h3>
+            <button class="close-btn" type="button" onclick="closeStudentModal()">×</button>
+        </div>
+        <form id="student-edit-form" method="post">
             <label>ФИО</label>
-            <input th:field="*{fullName}" required>
+            <input id="student-fullName" name="fullName" required>
             <label>Email</label>
-            <input th:field="*{email}" type="email" required>
-            <label>Год обучения</label>
-            <input th:field="*{studyYear}" type="number" min="1" max="6" required>
-            <label>Курс</label>
-            <select th:field="*{course.id}">
-                <option th:value="${null}" th:text="'Без курса'"></option>
-                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
-            </select>
-            <button type="submit">Добавить студента</button>
+            <input id="student-email" name="email" type="email" required>
+            <div class="two-col">
+                <div>
+                    <label>Год обучения</label>
+                    <input id="student-studyYear" name="studyYear" type="number" min="1" max="6" required>
+                </div>
+                <div>
+                    <label>Курс</label>
+                    <select id="student-course" name="courseId">
+                        <option value="" selected>Без курса</option>
+                        <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.code + ' — ' + c.title}"></option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+                <button class="ghost" type="button" onclick="closeStudentModal()">Отмена</button>
+                <button type="submit">Сохранить</button>
+            </div>
         </form>
-    </section>
+    </div>
+</div>
 
-    <section class="card">
-        <h2>Курсы</h2>
-        <div th:if="${courses.isEmpty()}">Пока пусто</div>
-        <ul>
-            <li th:each="c : ${courses}">
-                <strong th:text="${c.code}">CODE</strong> — <span th:text="${c.title}">Title</span>
-                <form th:action="@{/courses/{id}/delete(id=${c.id})}" method="post" class="inline-form">
-                    <button type="submit">Удалить</button>
-                </form>
-            </li>
-        </ul>
-    </section>
+<script>
+    function openCourseModal(button) {
+        const modal = document.getElementById('course-modal');
+        const form = document.getElementById('course-edit-form');
+        form.action = `/courses/${button.dataset.id}/update`;
+        document.getElementById('course-code').value = button.dataset.code || '';
+        document.getElementById('course-title').value = button.dataset.title || '';
+        document.getElementById('course-description').value = button.dataset.description || '';
+        modal.style.display = 'flex';
+    }
 
-    <section class="card">
-        <h2>Студенты</h2>
-        <div th:if="${students.isEmpty()}">Пока пусто</div>
-        <ul>
-            <li th:each="s : ${students}">
-                <strong th:text="${s.fullName}">Name</strong>
-                (<span th:text="${s.email}">email</span>) — курс:
-                <span th:text="${s.course != null ? s.course.code : '—'}">Course</span>
-                <form th:action="@{/students/{id}/delete(id=${s.id})}" method="post" class="inline-form">
-                    <button type="submit">Удалить</button>
-                </form>
-            </li>
-        </ul>
-    </section>
+    function closeCourseModal() {
+        document.getElementById('course-modal').style.display = 'none';
+    }
 
-    <section class="card">
-        <h2>Последние события</h2>
-        <div th:if="${changeLogs == null or changeLogs.isEmpty()}">Нет записей</div>
-        <table th:if="${changeLogs != null and !changeLogs.isEmpty()}" style="width:100%; border-collapse: collapse;">
-            <thead>
-            <tr>
-                <th style="text-align:left;">Время</th>
-                <th style="text-align:left;">Сущность</th>
-                <th style="text-align:left;">Операция</th>
-                <th style="text-align:left;">Детали</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="log : ${changeLogs}" style="border-top:1px solid #e2e8f0;">
-                <td th:text="${log.createdAt}">2025-01-01</td>
-                <td th:text="${log.entityName + ' #' + log.entityId}">Entity</td>
-                <td th:text="${log.operation}">OP</td>
-                <td th:text="${log.details}">details</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-</main>
+    function openStudentModal(button) {
+        const modal = document.getElementById('student-modal');
+        const form = document.getElementById('student-edit-form');
+        form.action = `/students/${button.dataset.id}/update`;
+        document.getElementById('student-fullName').value = button.dataset.fullName || '';
+        document.getElementById('student-email').value = button.dataset.email || '';
+        document.getElementById('student-studyYear').value = button.dataset.studyYear || '';
+        document.getElementById('student-course').value = button.dataset.courseId || '';
+        modal.style.display = 'flex';
+    }
+
+    function closeStudentModal() {
+        document.getElementById('student-modal').style.display = 'none';
+    }
+
+    function closeOnBackdrop(event, modalId) {
+        if (event.target.id === modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html>

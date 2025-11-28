@@ -53,7 +53,9 @@ public class CourseService {
 
     @Transactional
     public void delete(Long id) {
-        courseRepository.deleteById(id);
-        publisher.publish("Course", id, "DELETE", Map.of());
+        Course existing = get(id);
+        courseRepository.delete(existing);
+        publisher.publish("Course", id, "DELETE",
+                Map.of("code", existing.getCode(), "title", existing.getTitle()));
     }
 }
