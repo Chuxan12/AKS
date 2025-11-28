@@ -1,1 +1,77 @@
+Лабораторная работа: типовое Jakarta EE приложение (данные/логика/представление), упакованное в Docker.
 
+## Что внутри
+- Сервер приложений: Payara Micro 6 (JDK17, Jakarta EE 10), развёртывается в контейнере без установки Java на хост.
+- База: PostgreSQL 16 (контейнер), начальный скрипт `db/init.sql` создаёт и наполняет таблицы.
+- Предметная область: курсы (`Course`) и студенты (`Student`), связь `ManyToOne`.
+- Слои:
+  - Data: JPA-сущности `com.example.academy.entity.*`, `persistence.xml` с JTA datasource `jdbc/AcademyDS`.
+  - Logic: сессионные EJB `CourseService`, `StudentService`.
+  - View/API: REST (JAX-RS) `CourseResource`, `StudentResource` + простая HTML-страница `src/main/webapp/index.html`.
+
+## Запуск целиком в Docker
+Требования: Docker + Docker Compose.
+
+```bash
+# 1) Собрать образ приложения (Maven внутри контейнера)
+docker compose build
+
+# 2) Поднять всё (Postgres + Payara Micro)
+docker compose up
+
+# 3) Проверка
+curl http://localhost:8080/api/courses
+```
+
+Доступ после старта:
+- Приложение/страница: http://localhost:8080/
+- REST API: http://localhost:8080/api/courses, http://localhost:8080/api/students
+- База: `postgres://academy:academy@localhost:5432/academy` (создаётся автоматически с данными из `db/init.sql`).
+
+Остановка: `docker compose down` (данные живут в контейнере; если нужен стабильный volume, добавьте его в `docker-compose.yml`).
+
+## Примеры запросов
+```bash
+curl http://localhost:8080/api/courses
+
+curl -X POST http://localhost:8080/api/courses \
+  -H "Content-Type: application/json" \
+  -d '{"code":"JEE300","title":"Jakarta EE Advanced","description":"EJB, JPA, REST"}'
+
+curl -X POST http://localhost:8080/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Ada Lovelace","email":"ada@example.com","studyYear":1,"courseId":1}'
+```
+
+## Полезные пути
+- `pom.xml` — Jakarta EE 10, packaging WAR.
+- `src/main/resources/META-INF/persistence.xml` — `academyPU` с JTA datasource `jdbc/AcademyDS`.
+- `src/main/java/com/example/academy/entity` — сущности `Course`, `Student`.
+- `src/main/java/com/example/academy/service` — EJB-слой для CRUD.
+- `src/main/java/com/example/academy/api` — REST-endpoints (`/api`), DTO `StudentPayload`.
+- `src/main/webapp/index.html` — простая форма для ручной проверки.
+- `db/init.sql` — создание/наполнение таблиц.
+- `Dockerfile` — multi-stage (Maven → Payara Micro), добавляет драйвер PostgreSQL.
+- `docker-compose.yml` — сервисы `db` (Postgres) и `app` (Payara Micro).
+
+## Соответствие пунктам задания
+1. Сервер приложений — Payara (альтернатива GlassFish) разворачивается в контейнере; при необходимости консоль администратора можно посмотреть, запустив отдельный контейнер `payara/server-full` с пробросом порта `4848`.
+2. СУБД — PostgreSQL в контейнере.
+3. Предметная область с двумя сущностями и скриптом создания данных — `Course`/`Student`, `db/init.sql`.
+4. Слой данных — JPA-сущности, `persistence.xml`, datasource `jdbc/AcademyDS`.
+5. Бизнес-логика — сессионные EJB `CourseService`, `StudentService`.
+6. Представление — REST API + HTML-страница для ручной работы через браузер.
+7. Всё запускается в Docker Compose, API и веб-страница работают на `http://localhost:8080`.
+
+## Сборка без локальной Java
+Если нужно только пересобрать артефакт, не ставя Java/Maven:
+```bash
+docker run --rm -v \"$PWD\":/workspace -w /workspace maven:3.9.9-eclipse-temurin-17 mvn -q package
+```
+
+## Примечание по админ-консоли
+Payara Micro не содержит веб-консоль. Для демонстрации пункта «открыть консоль администратора» можно запустить:
+```bash
+docker run --rm -p 4848:4848 payara/server-full:6.2024.4-jdk17
+```
+и открыть http://localhost:4848, а для деплоя использовать `asadmin` или автодеплой каталога.
