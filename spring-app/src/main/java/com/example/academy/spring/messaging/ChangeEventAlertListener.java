@@ -1,8 +1,5 @@
 package com.example.academy.spring.messaging;
 
-import com.example.academy.spring.model.ChangeLog;
-import com.example.academy.spring.repository.ChangeLogRepository;
-import java.time.Instant;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,35 +10,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class ChangeEventListener {
+public class ChangeEventAlertListener {
 
-    private static final Logger log = LoggerFactory.getLogger(ChangeEventListener.class);
-    private final ChangeLogRepository changeLogRepository;
+    private static final Logger log = LoggerFactory.getLogger(ChangeEventAlertListener.class);
     private final JavaMailSender mailSender;
 
-    public ChangeEventListener(ChangeLogRepository changeLogRepository, JavaMailSender mailSender) {
-        this.changeLogRepository = changeLogRepository;
+    public ChangeEventAlertListener(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
-    @JmsListener(destination = ChangeEventPublisher.DESTINATION)
+    @JmsListener(destination = ChangeEventPublisher.DESTINATION, containerFactory = "topicListenerFactory")
     public void onMessage(ChangeEvent event) {
         if (event == null || !StringUtils.hasText(event.getEntity()) || !StringUtils.hasText(event.getOperation())) {
-            log.warn("Получено пустое/некорректное событие JMS: {}", event);
+            log.warn("AlertListener: пустое/некорректное событие: {}", event);
             return;
         }
-        log.info("Получено событие изменения: {}", event);
-        ChangeLog logRow = new ChangeLog();
-        logRow.setCreatedAt(Instant.now());
-        logRow.setEntityName(event.getEntity());
-        logRow.setEntityId(event.getEntityId());
-        logRow.setOperation(event.getOperation());
-        logRow.setDetails(event.getPayload() != null ? event.getPayload().toString() : "");
-        changeLogRepository.save(logRow);
-
-        if (shouldNotify(event)) {
-            sendMail(event);
+        if (!shouldNotify(event)) {
+            return;
         }
+        sendMail(event);
     }
 
     private boolean shouldNotify(ChangeEvent event) {
@@ -66,7 +53,7 @@ public class ChangeEventListener {
                     "ID: " + event.getEntityId() + "\n" +
                     "Данные: " + event.getPayload());
             mailSender.send(message);
-            log.info("Отправлено письмо об изменении: {}", event);
+            log.info("AlertListener отправил письмо: {}", event);
         } catch (Exception e) {
             log.error("Не удалось отправить письмо об изменении {}", event, e);
         }
